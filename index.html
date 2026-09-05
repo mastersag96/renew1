@@ -97,15 +97,40 @@
   .layout{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;margin-top:24px;align-items:start;}
   @media (max-width:920px){.layout{grid-template-columns:1fr;}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;}
-  .card h2{font-family:'Chakra Petch',sans-serif;font-size:15px;margin:0 0 14px;color:#fff;font-weight:600;}
-  .card h2 small{color:var(--text-faint);font-weight:400;font-size:12px;margin-left:8px;}
+  .card h2{font-family:'Chakra Petch',sans-serif;font-size:15px;margin:0 0 14px;color:#fff;font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+  .card h2 small{color:var(--text-faint);font-weight:400;font-size:12px;margin-left:8px;display:inline-flex;align-items:center;gap:6px;}
+
+  .live-dot{
+    width:8px;height:8px;border-radius:50%;background:var(--text-faint);
+    display:inline-block;flex:0 0 auto;
+  }
+  .live-dot.running{
+    background:var(--good);
+    box-shadow:0 0 0 0 rgba(111,207,151,.6);
+    animation:pulseDot 1.2s infinite;
+  }
+  @keyframes pulseDot{
+    0%{box-shadow:0 0 0 0 rgba(111,207,151,.55);}
+    70%{box-shadow:0 0 0 7px rgba(111,207,151,0);}
+    100%{box-shadow:0 0 0 0 rgba(111,207,151,0);}
+  }
+
+  /* ---------- Flowing energy / money lines ---------- */
+  @keyframes flowDash{ to{ stroke-dashoffset:-48; } }
+  .flow-e, .flow-m{ animation-name:flowDash; animation-timing-function:linear; animation-iteration-count:infinite; }
+  .flow-e{ filter:url(#glowAmber); }
+  .flow-m{ filter:url(#glowTeal); }
+  .flow-g{ filter:url(#glowViolet); }
+  @keyframes glowPulse{ 0%,100%{ opacity:.75; } 50%{ opacity:1; } }
+  .flow-e, .flow-m, .flow-g{ animation-name:flowDash, glowPulse; animation-duration:var(--dur,1.2s), 1.6s; animation-timing-function:linear, ease-in-out; animation-iteration-count:infinite,infinite; animation-play-state:paused, paused; }
+  #lines.is-playing .flow-e, #lines.is-playing .flow-m, #lines.is-playing .flow-g{ animation-play-state:running, running; }
 
   /* ---------- Diagram ---------- */
   .diagram-wrapper{position:relative;width:100%;overflow:hidden;}
   .diagram-stage{position:relative;width:900px;height:760px;transform-origin:top left;}
   .diagram-stage svg{position:absolute;inset:0;width:900px;height:760px;}
   .nodes-layer{position:absolute;inset:0;width:900px;height:760px;}
-  .node{position:absolute;transform:translate(-50%,-50%);}
+  .node{position:absolute;transform:translate(-50%,-50%);transition:left .5s ease,top .5s ease;}
   .hub-card, .grid-card{
     width:150px;border-radius:12px;padding:10px 12px;text-align:center;
     border:1px solid var(--line); background:var(--panel-2);
@@ -133,7 +158,7 @@
   .strat-pill.on{background:rgba(232,163,61,.18);color:var(--amber);}
   .strat-pill.off{background:rgba(90,110,150,.2);color:var(--text-dim);}
   .temp-bar{height:5px;border-radius:4px;background:var(--line);margin:8px 0 6px;overflow:hidden;position:relative;}
-  .temp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#4d8ff0,var(--amber));}
+  .temp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#4d8ff0,var(--amber));transition:width .5s ease;}
   .temp-marks{display:flex;justify-content:space-between;font-size:9px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;}
   .peer-stats{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;margin-top:7px;font-size:10.5px;}
   .peer-stats div{display:flex;justify-content:space-between;color:var(--text-dim);}
@@ -186,7 +211,7 @@
   }
 
 
-  .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+  .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
   button.action{
     font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:13px;
     border:none;border-radius:9px;padding:11px 16px;cursor:pointer;
@@ -194,8 +219,13 @@
   }
   button.action:active{transform:scale(.97);}
   button.primary{background:var(--amber);color:#241705;}
+  button.primary.playing{background:var(--danger);color:#2a0d0b;}
   button.secondary{background:var(--panel-2);color:var(--text);border:1px solid var(--line);}
   button.ghost{background:transparent;color:var(--text-dim);border:1px dashed var(--line);}
+
+  .speed-toggle{margin-left:auto;}
+  @media (max-width:520px){.speed-toggle{margin-left:0;width:100%;}
+    .speed-toggle button{flex:1 1 0;text-align:center;}}
 
   .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px;}
   @media (max-width:520px){.stat-strip{grid-template-columns:repeat(2,1fr);}}
@@ -237,7 +267,7 @@
       แบบจำลองเกมต่อรองพลังงานแบบ P2P ใน Microgrid อ้างอิงจาก Zhang et al.,
       <em>Applied Energy</em> 220 (2018) — ผู้เล่นแต่ละคนเลือก ON/OFF เครื่องทำน้ำอุ่น
       เพื่อเพิ่มผลตอบแทนของตัวเอง ระบบจะหาจุดที่ไม่มีใครอยากเปลี่ยนใจคนเดียว (Nash Equilibrium)
-      แล้ววาดเส้นทางพลังงานและเงินที่เกิดขึ้นจริงให้เห็นภาพ
+      แล้ววาดเส้นทางพลังงานและเงินที่เกิดขึ้นจริงให้เห็นภาพ — กด "เดินหน้าอัตโนมัติ" เพื่อให้ระบบจำลองไปเรื่อย ๆ แบบเรียลไทม์
     </p>
     <div class="legend">
       <span><i class="swatch energy"></i> เส้นพลังงาน (kWh)</span>
@@ -271,6 +301,7 @@
         การหาจุดสมดุลในเว็บนี้ใช้วิธี <b>Best-Response Dynamics</b> (ให้แต่ละผู้เล่นสลับกันเลือกทางที่ดีที่สุดของตัวเองไปเรื่อยๆ จนไม่มีใครอยากเปลี่ยนอีก)
         ซึ่งเป็นวิธีคำนวณอย่างง่ายเพื่อให้เห็นภาพว่าเกมลู่เข้าสู่ดุลยภาพแนชได้อย่างไร ไม่ใช่ตัวแก้ปัญหา optimization (สมการ 7) แบบเป๊ะๆ ตามบทความต้นฉบับ
         ส่วน <b>มูลค่าเงิน (฿)</b> เป็นชั้นเศรษฐศาสตร์ที่เพิ่มเข้ามาเพื่อให้เห็นภาพการซื้อขาย โดยคำนวณจากปริมาณพลังงานที่แต่ละคนซื้อ/ขายจริง คูณราคาที่ตั้งไว้ — ไม่ได้อยู่ในสูตร payoff uᵢ ของเกมโดยตรง
+        เมื่อกด <b>"เดินหน้าอัตโนมัติ"</b> ระบบจะเรียก advance ทีละช่วงเวลา (30 นาทีจำลอง) ต่อเนื่องด้วยตัวจับเวลาในเบราว์เซอร์ (setInterval) แล้วรัน best-response ซ้ำในทุกช่วง เพื่อเลียนแบบการที่แต่ละบ้านปรับกลยุทธ์ตามอุณหภูมิที่เปลี่ยนไปแบบเรียลไทม์
       </div>
     </details>
   </header>
@@ -279,7 +310,7 @@
 
     <!-- ================= DIAGRAM ================= -->
     <div class="card">
-      <h2>แผนผังการซื้อขาย <small>ช่วงเวลาที่ <span id="periodNo" class="num">0</span></small></h2>
+      <h2>แผนผังการซื้อขาย <small><span class="live-dot" id="liveDot"></span>ช่วงเวลาที่ <span id="periodNo" class="num">0</span></small></h2>
       <div class="diagram-wrapper" id="diagramWrapper">
        <div class="diagram-stage" id="diagramStage">
         <svg id="lines" viewBox="0 0 900 760" xmlns="http://www.w3.org/2000/svg">
@@ -293,6 +324,18 @@
             <marker id="arrViolet" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
               <path d="M0,0 L9,4.5 L0,9 Z" fill="#9b8cf2"/>
             </marker>
+            <filter id="glowAmber" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2.1" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glowTeal" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glowViolet" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
           </defs>
           <g id="linesGroup"></g>
         </svg>
@@ -325,12 +368,19 @@
       <div id="peerRows"></div>
 
       <div class="btn-row">
-        <button class="action primary" id="btnEquilibrium">▶ หาจุดสมดุล (Best Response)</button>
-        <button class="action secondary" id="btnAdvance">⏭ เดินหน้า 30 นาที</button>
+        <button class="action primary" id="btnPlay">▶ เดินหน้าอัตโนมัติ</button>
+        <button class="action secondary" id="btnAdvance">⏭ เดินหน้า 1 ช่วง</button>
+        <button class="action secondary" id="btnEquilibrium">⇄ หาจุดสมดุลเดี๋ยวนี้</button>
         <button class="action ghost" id="btnReset">↺ รีเซ็ต</button>
+        <div class="toggle-mode speed-toggle" id="speedToggle">
+          <button data-ms="3000">0.5×</button>
+          <button data-ms="1500" class="active">1×</button>
+          <button data-ms="700">2×</button>
+          <button data-ms="300">4×</button>
+        </div>
       </div>
 
-      <div class="log-box" id="logBox"><div>ยังไม่ได้รันการค้นหาสมดุล — กด "หาจุดสมดุล" เพื่อเริ่ม</div></div>
+      <div class="log-box" id="logBox"><div>ยังไม่ได้รันการค้นหาสมดุล — กด "เดินหน้าอัตโนมัติ" เพื่อเริ่มจำลองแบบเรียลไทม์</div></div>
     </div>
   </div>
 
@@ -348,6 +398,7 @@ const EPS = 0.01;
 const HEAT_RATE_ON = 6.5;
 const HEAT_RATE_OFF = -4;
 const TEMP_CLAMP = [15, 90];
+const MAX_HISTORY = 60; // cap sparkline history so it doesn't grow forever during real-time play
 
 const DESIGN_W = 900, DESIGN_H = 760;
 const peerAngles = [-151, -93, -35, 35, 93, 151]; // degrees from top, around hub
@@ -366,6 +417,14 @@ let peers = [
 
 let period = 0;
 let prices = {internal:4.0, import:5.5, export:2.5};
+
+/* ---- real-time playback state ---- */
+let playTimer = null;
+let speedMs = 1500;
+
+/* ---- flow animation speed helpers: bigger flow = faster-moving dashes ---- */
+function energyFlowDur(mag){ return Math.max(0.35, (1.7 - Math.abs(mag)*0.11)).toFixed(2)+'s'; }
+function moneyFlowDur(mag){ return Math.max(0.4, (1.9 - Math.abs(mag)*0.028)).toFixed(2)+'s'; }
 
 /* ============================= GAME LOGIC ============================= */
 function comfort(temp, tmin, tmax, strat){
@@ -427,22 +486,73 @@ function runToConvergence(maxRounds=20){
   render();
 }
 
+function logLine(text, cls){
+  const log = document.getElementById('logBox');
+  const line = document.createElement('div');
+  if(cls) line.className = cls;
+  line.textContent = text;
+  log.appendChild(line);
+  // keep the log from growing forever during long real-time runs
+  while(log.children.length > 40) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
 function advancePeriod(){
   peers.forEach(p=>{
     const delta = p.strat===1 ? HEAT_RATE_ON : HEAT_RATE_OFF;
     p.temp = Math.max(TEMP_CLAMP[0], Math.min(TEMP_CLAMP[1], p.temp + delta));
     p.history.push(p.temp);
+    if(p.history.length > MAX_HISTORY) p.history.shift();
   });
   period++;
-  bestResponseRoundsSilent();
+  const changed = bestResponseRoundsSilent();
+  logLine(`ช่วง ${period}: ${changed>0 ? 'ปรับกลยุทธ์ '+changed+' คน' : 'ทุกคนคงกลยุทธ์เดิม'}`, changed===0 ? 'converged' : '');
   render();
   renderTimeline();
 }
 function bestResponseRoundsSilent(){
-  for(let r=0;r<20;r++){ if(bestResponseRound()===0) break; }
+  let total = 0;
+  for(let r=0;r<20;r++){
+    const c = bestResponseRound();
+    total += c;
+    if(c===0) break;
+  }
+  return total;
+}
+
+/* ---- play / pause real-time simulation ---- */
+function updatePlayUI(){
+  const btn = document.getElementById('btnPlay');
+  const dot = document.getElementById('liveDot');
+  const svgEl = document.getElementById('lines');
+  if(playTimer){
+    btn.textContent = '⏸ หยุดชั่วคราว';
+    btn.classList.add('playing');
+    dot.classList.add('running');
+    svgEl.classList.add('is-playing');
+  } else {
+    btn.textContent = '▶ เดินหน้าอัตโนมัติ';
+    btn.classList.remove('playing');
+    dot.classList.remove('running');
+    svgEl.classList.remove('is-playing');
+  }
+}
+
+function startPlay(){
+  if(playTimer) clearInterval(playTimer);
+  playTimer = setInterval(advancePeriod, speedMs);
+  updatePlayUI();
+}
+function stopPlay(){
+  if(playTimer){ clearInterval(playTimer); playTimer=null; }
+  updatePlayUI();
+}
+function togglePlay(){
+  if(playTimer) stopPlay(); else startPlay();
 }
 
 function resetAll(){
+  stopPlay();
   peers = [
     {name:'Peer 1–3\nอพาร์ตเมนต์', icon:'🏢', pv:4.0, base:3.0, heater:2.5, tmin:40, tmax:60, temp:47, mode:'auto', strat:0, history:[47]},
     {name:'Peer 4\nบ้านเดี่ยว', icon:'🏠', pv:0.0, base:1.2, heater:2.0, tmin:40, tmax:60, temp:44, mode:'auto', strat:0, history:[44]},
@@ -452,7 +562,7 @@ function resetAll(){
     {name:'สายอื่น\nฟาร์ม PV', icon:'☀️', pv:10.0, base:2.0, heater:2.0, tmin:40, tmax:60, temp:52, mode:'auto', strat:0, history:[52]},
   ];
   period = 0;
-  document.getElementById('logBox').innerHTML = '<div>ยังไม่ได้รันการค้นหาสมดุล — กด "หาจุดสมดุล" เพื่อเริ่ม</div>';
+  document.getElementById('logBox').innerHTML = '<div>ยังไม่ได้รันการค้นหาสมดุล — กด "เดินหน้าอัตโนมัติ" เพื่อเริ่มจำลองแบบเรียลไทม์</div>';
   render();
   renderTimeline();
 }
@@ -532,21 +642,23 @@ function render(){
     // money line: offset other side, dashed
     const mX1 = pos.x-perpX, mY1 = pos.y-perpY, mX2 = HUB.x-perpX, mY2 = HUB.y-perpY;
 
+    const eDur = energyFlowDur(e);
     if(Math.abs(e) > 0.05){
       if(e > 0){ // export: energy peer->hub
-        svg += `<line x1="${eX1}" y1="${eY1}" x2="${eX2}" y2="${eY2}" stroke="#e8a33d" stroke-width="${ew}" marker-end="url(#arrAmber)" opacity="0.9"/>`;
+        svg += `<line x1="${eX1}" y1="${eY1}" x2="${eX2}" y2="${eY2}" stroke="#e8a33d" stroke-width="${ew}" stroke-linecap="round" stroke-dasharray="14 9" class="flow-e" style="--dur:${eDur}" marker-end="url(#arrAmber)" opacity="0.95"/>`;
       } else { // import: energy hub->peer
-        svg += `<line x1="${eX2}" y1="${eY2}" x2="${eX1}" y2="${eY1}" stroke="#e8a33d" stroke-width="${ew}" marker-end="url(#arrAmber)" opacity="0.9"/>`;
+        svg += `<line x1="${eX2}" y1="${eY2}" x2="${eX1}" y2="${eY1}" stroke="#e8a33d" stroke-width="${ew}" stroke-linecap="round" stroke-dasharray="14 9" class="flow-e" style="--dur:${eDur}" marker-end="url(#arrAmber)" opacity="0.95"/>`;
       }
     } else {
       svg += `<line x1="${eX1}" y1="${eY1}" x2="${eX2}" y2="${eY2}" stroke="#3a4664" stroke-width="1.5"/>`;
     }
 
+    const mDur = moneyFlowDur(mAmt);
     if(Math.abs(mAmt) > 0.05){
       if(mAmt > 0){ // peer receives money: hub->peer
-        svg += `<line x1="${mX2}" y1="${mY2}" x2="${mX1}" y2="${mY1}" stroke="#49d3c4" stroke-width="${mw}" stroke-dasharray="2 6" marker-end="url(#arrTeal)" opacity="0.85"/>`;
+        svg += `<line x1="${mX2}" y1="${mY2}" x2="${mX1}" y2="${mY1}" stroke="#49d3c4" stroke-width="${mw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${mDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
       } else { // peer pays: peer->hub
-        svg += `<line x1="${mX1}" y1="${mY1}" x2="${mX2}" y2="${mY2}" stroke="#49d3c4" stroke-width="${mw}" stroke-dasharray="2 6" marker-end="url(#arrTeal)" opacity="0.85"/>`;
+        svg += `<line x1="${mX1}" y1="${mY1}" x2="${mX2}" y2="${mY2}" stroke="#49d3c4" stroke-width="${mw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${mDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
       }
     } else {
       svg += `<line x1="${mX1}" y1="${mY1}" x2="${mX2}" y2="${mY2}" stroke="#2c3852" stroke-width="1" stroke-dasharray="2 6"/>`;
@@ -559,17 +671,19 @@ function render(){
     const perpX=10, perpY=0;
     const gew = Math.max(1.5, Math.min(9, 1.6 + Math.max(residualExport,residualImport)*0.9));
     const gmw = Math.max(1.2, Math.min(7, 1.2 + Math.abs(gridMoney)*0.14));
+    const gDur = energyFlowDur(Math.max(residualExport,residualImport));
+    const gmDur = moneyFlowDur(gridMoney);
     if(Emgout >= 0.05 && residualExport>0.05){
-      svg += `<line x1="${HUB.x+perpX}" y1="${HUB.y-40}" x2="${GRID.x+perpX}" y2="${GRID.y+34}" stroke="#9b8cf2" stroke-width="${gew}" marker-end="url(#arrViolet)" opacity="0.9"/>`;
+      svg += `<line x1="${HUB.x+perpX}" y1="${HUB.y-40}" x2="${GRID.x+perpX}" y2="${GRID.y+34}" stroke="#9b8cf2" stroke-width="${gew}" stroke-linecap="round" stroke-dasharray="14 10" class="flow-g" style="--dur:${gDur}" marker-end="url(#arrViolet)" opacity="0.95"/>`;
     } else if(residualImport>0.05){
-      svg += `<line x1="${GRID.x+perpX}" y1="${GRID.y+34}" x2="${HUB.x+perpX}" y2="${HUB.y-40}" stroke="#9b8cf2" stroke-width="${gew}" marker-end="url(#arrViolet)" opacity="0.9"/>`;
+      svg += `<line x1="${GRID.x+perpX}" y1="${GRID.y+34}" x2="${HUB.x+perpX}" y2="${HUB.y-40}" stroke="#9b8cf2" stroke-width="${gew}" stroke-linecap="round" stroke-dasharray="14 10" class="flow-g" style="--dur:${gDur}" marker-end="url(#arrViolet)" opacity="0.95"/>`;
     } else {
       svg += `<line x1="${HUB.x+perpX}" y1="${HUB.y-40}" x2="${GRID.x+perpX}" y2="${GRID.y+34}" stroke="#3a3660" stroke-width="1.5"/>`;
     }
     if(gridMoney >= 0.05){
-      svg += `<line x1="${GRID.x-perpX}" y1="${GRID.y+34}" x2="${HUB.x-perpX}" y2="${HUB.y-40}" stroke="#49d3c4" stroke-width="${gmw}" stroke-dasharray="2 6" marker-end="url(#arrTeal)" opacity="0.85"/>`;
+      svg += `<line x1="${GRID.x-perpX}" y1="${GRID.y+34}" x2="${HUB.x-perpX}" y2="${HUB.y-40}" stroke="#49d3c4" stroke-width="${gmw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${gmDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
     } else if(gridMoney <= -0.05){
-      svg += `<line x1="${HUB.x-perpX}" y1="${HUB.y-40}" x2="${GRID.x-perpX}" y2="${GRID.y+34}" stroke="#49d3c4" stroke-width="${gmw}" stroke-dasharray="2 6" marker-end="url(#arrTeal)" opacity="0.85"/>`;
+      svg += `<line x1="${HUB.x-perpX}" y1="${HUB.y-40}" x2="${GRID.x-perpX}" y2="${GRID.y+34}" stroke="#49d3c4" stroke-width="${gmw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${gmDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
     }
   }
 
@@ -634,6 +748,7 @@ function render(){
   `;
 
   renderPeerRows(strats);
+  document.getElementById('periodNo').textContent = period;
 }
 
 /* ============================= RENDER: CONTROLS ============================= */
@@ -695,9 +810,20 @@ function renderTimeline(){
 }
 
 /* ============================= EVENTS ============================= */
-document.getElementById('btnEquilibrium').addEventListener('click', ()=>runToConvergence());
-document.getElementById('btnAdvance').addEventListener('click', advancePeriod);
+document.getElementById('btnPlay').addEventListener('click', togglePlay);
+document.getElementById('btnAdvance').addEventListener('click', ()=>{ stopPlay(); advancePeriod(); });
+document.getElementById('btnEquilibrium').addEventListener('click', ()=>{ stopPlay(); runToConvergence(); });
 document.getElementById('btnReset').addEventListener('click', resetAll);
+
+document.getElementById('speedToggle').querySelectorAll('button[data-ms]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('speedToggle').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    speedMs = +btn.dataset.ms;
+    if(playTimer) startPlay(); // restart interval at new speed if currently playing
+  });
+});
+
 ['priceInternal','priceImport','priceExport'].forEach(id=>{
   document.getElementById(id).addEventListener('input', (e)=>{
     const key = id.replace('price','').toLowerCase();
@@ -706,13 +832,16 @@ document.getElementById('btnReset').addEventListener('click', resetAll);
   });
 });
 
+// pause playback automatically when the tab is hidden, to avoid piling up work in the background
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden && playTimer) stopPlay();
+});
+
 /* ============================= INIT ============================= */
 render();
 renderTimeline();
 fitStage();
-document.getElementById('periodNo').textContent = period;
-const _origRender = render;
-render = function(){ _origRender(); document.getElementById('periodNo').textContent = period; };
+updatePlayUI();
 </script>
 </body>
 </html>
