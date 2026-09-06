@@ -118,10 +118,7 @@
   /* ---------- Flowing energy / money lines ---------- */
   @keyframes flowDash{ to{ stroke-dashoffset:-48; } }
   .flow-e, .flow-m{ animation-name:flowDash; animation-timing-function:linear; animation-iteration-count:infinite; }
-  .flow-e{ filter:url(#glowAmber); }
-  .flow-m{ filter:url(#glowTeal); }
-  .flow-g{ filter:url(#glowViolet); }
-  @keyframes glowPulse{ 0%,100%{ opacity:.75; } 50%{ opacity:1; } }
+  @keyframes glowPulse{ 0%,100%{ opacity:.85; } 50%{ opacity:1; } }
   .flow-e, .flow-m, .flow-g{ animation-name:flowDash, glowPulse; animation-duration:var(--dur,1.2s), 1.6s; animation-timing-function:linear, ease-in-out; animation-iteration-count:infinite,infinite; animation-play-state:paused, paused; }
   #lines.is-playing .flow-e, #lines.is-playing .flow-m, #lines.is-playing .flow-g{ animation-play-state:running, running; }
 
@@ -324,18 +321,6 @@
             <marker id="arrViolet" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
               <path d="M0,0 L9,4.5 L0,9 Z" fill="#9b8cf2"/>
             </marker>
-            <filter id="glowAmber" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="2.1" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="glowTeal" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="glowViolet" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
           </defs>
           <g id="linesGroup"></g>
         </svg>
@@ -635,7 +620,7 @@ function render(){
     const e = eouts[i];
     const ew = Math.max(1.5, Math.min(9, 1.6 + Math.abs(e)*0.9));
     const mAmt = money[i];
-    const mw = Math.max(1.2, Math.min(7, 1.2 + Math.abs(mAmt)*0.14));
+    const mw = Math.max(1.8, Math.min(7, 1.8 + Math.abs(mAmt)*0.14));
 
     // energy line: offset one side
     const eX1 = pos.x+perpX, eY1 = pos.y+perpY, eX2 = HUB.x+perpX, eY2 = HUB.y+perpY;
@@ -656,9 +641,9 @@ function render(){
     const mDur = moneyFlowDur(mAmt);
     if(Math.abs(mAmt) > 0.05){
       if(mAmt > 0){ // peer receives money: hub->peer
-        svg += `<line x1="${mX2}" y1="${mY2}" x2="${mX1}" y2="${mY1}" stroke="#49d3c4" stroke-width="${mw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${mDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
+        svg += `<line x1="${mX2}" y1="${mY2}" x2="${mX1}" y2="${mY1}" stroke="#49d3c4" stroke-width="${mw}" stroke-linecap="round" stroke-dasharray="4 6" class="flow-m" style="--dur:${mDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
       } else { // peer pays: peer->hub
-        svg += `<line x1="${mX1}" y1="${mY1}" x2="${mX2}" y2="${mY2}" stroke="#49d3c4" stroke-width="${mw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${mDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
+        svg += `<line x1="${mX1}" y1="${mY1}" x2="${mX2}" y2="${mY2}" stroke="#49d3c4" stroke-width="${mw}" stroke-linecap="round" stroke-dasharray="4 6" class="flow-m" style="--dur:${mDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
       }
     } else {
       svg += `<line x1="${mX1}" y1="${mY1}" x2="${mX2}" y2="${mY2}" stroke="#2c3852" stroke-width="1" stroke-dasharray="2 6"/>`;
@@ -670,7 +655,7 @@ function render(){
     const dx=0, dy=HUB.y-GRID.y, len=Math.abs(dy);
     const perpX=10, perpY=0;
     const gew = Math.max(1.5, Math.min(9, 1.6 + Math.max(residualExport,residualImport)*0.9));
-    const gmw = Math.max(1.2, Math.min(7, 1.2 + Math.abs(gridMoney)*0.14));
+    const gmw = Math.max(1.8, Math.min(7, 1.8 + Math.abs(gridMoney)*0.14));
     const gDur = energyFlowDur(Math.max(residualExport,residualImport));
     const gmDur = moneyFlowDur(gridMoney);
     if(Emgout >= 0.05 && residualExport>0.05){
@@ -681,9 +666,9 @@ function render(){
       svg += `<line x1="${HUB.x+perpX}" y1="${HUB.y-40}" x2="${GRID.x+perpX}" y2="${GRID.y+34}" stroke="#3a3660" stroke-width="1.5"/>`;
     }
     if(gridMoney >= 0.05){
-      svg += `<line x1="${GRID.x-perpX}" y1="${GRID.y+34}" x2="${HUB.x-perpX}" y2="${HUB.y-40}" stroke="#49d3c4" stroke-width="${gmw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${gmDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
+      svg += `<line x1="${GRID.x-perpX}" y1="${GRID.y+34}" x2="${HUB.x-perpX}" y2="${HUB.y-40}" stroke="#49d3c4" stroke-width="${gmw}" stroke-linecap="round" stroke-dasharray="4 6" class="flow-m" style="--dur:${gmDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
     } else if(gridMoney <= -0.05){
-      svg += `<line x1="${HUB.x-perpX}" y1="${HUB.y-40}" x2="${GRID.x-perpX}" y2="${GRID.y+34}" stroke="#49d3c4" stroke-width="${gmw}" stroke-linecap="round" stroke-dasharray="3 7" class="flow-m" style="--dur:${gmDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
+      svg += `<line x1="${HUB.x-perpX}" y1="${HUB.y-40}" x2="${GRID.x-perpX}" y2="${GRID.y+34}" stroke="#49d3c4" stroke-width="${gmw}" stroke-linecap="round" stroke-dasharray="4 6" class="flow-m" style="--dur:${gmDur}" marker-end="url(#arrTeal)" opacity="0.9"/>`;
     }
   }
 
